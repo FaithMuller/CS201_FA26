@@ -1,0 +1,68 @@
+---
+title: "CS-201 First Look at R"
+author: "Amber Camp"
+date: 8/26/26
+format: html
+editor: visual
+toc: true
+---
+
+This is the first class session walking through code together!
+
+We will be programming in R and in this class will primarily use `qmd` documents to keep things tidy and presentable. Each code chunk below is where you will run R code. Feel free to add notes as we go along.
+
+## Navigating RStudio
+
+By default, everyone should have the same four-pane layout:
+
+1.  **Top left**: Source editor
+
+2.  **Bottom left**: Console (and Terminal and Background Jobs)
+
+3.  **Top Right**: Environment
+
+4.  **Bottom Right**: Files, Plots, Help, etc.
+
+### Customizing look & feel
+
+Feel free to customize your RStudio.\
+Go to Tools \> Global Options \> Appearance to select a color scheme you like.
+
+I also personally like to enable these:
+
+- Tools \> Global Options \> Code \> Insert matching parens/quotes
+
+- Tools \> Global Options \> Console \> Show syntax highlighting in console input
+
+I don't recommend rearranging your pane layout at this time.
+
+## Running Code
+
+Try running some code
+
+```{r}
+
+
+```
+
+## Introducing `ggplot2`
+
+```{r}
+
+```
+
+## Extra Credit (1pt)
+
+What result do you expect when you run this expression?
+
+```{r}
+
+```
+
+What did you observe?
+
+> Answer:
+
+Why do you think this is happening? (You can look online for help)
+
+> Answer:
