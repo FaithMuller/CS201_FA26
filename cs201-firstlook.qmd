@@ -177,8 +177,8 @@ print(0.5, 20)
 
 What did you observe?
 
-> Answer:
+> Answer: The simple arithmetic expressions like "1+1+1" and "1+1+1-3", both gave the exact results I expected. When I printed "0.1+0.1+0.1-0.3", it did equal 0, instead it gave a tiny nonzero number. When I also print 0.1, 0.3, 0.5 out to 20 decimal places, I saw how 0.1 and 0.3 are not stored as exactly those values. BUT 0.5 was stored exactly the same.
 
 Why do you think this is happening? (You can look online for help)
 
-> Answer:
+> Answer: I totally remember learning something about this in my number theory class I took. Our computers only count in binary which is just ones and zeros. in binary, a fraction only ends cleanly if its denominator is a powers of 2, so 2, 4, 8, 16, 32, etc. Lets look at 0.5 (in fractions it is 1/2). Since 2 is a power of 2, this fraction converts perfectly into binary without any leftover. As for 0.1, the fraction is 1/10 and 10 is not a power of 2. It breaks down into 10 = 2 \* 5, the "5" is the problem. Instead of ending cleanly, 0.1 turns into a binary fraction that repeats forever. And this is the same for 0.3.
