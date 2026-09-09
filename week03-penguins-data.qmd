@@ -291,8 +291,14 @@ ggplot(data = penguins_data, aes(x = culmen_depth_mm, fill = species)) +
 ```{r, message=FALSE, warning=FALSE}
 
 ggplot(data = penguins_data, aes(x = culmen_depth_mm, y = body_mass_g, color = species)) + 
-  
-
+  geom_point(size = 2, alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_bw() +
+  scale_color_viridis_d(option = "turbo") +
+  labs(title = "Palmer Penguins' Culmen Length",
+       subtitle = "Three species observed on three islands in the Palmer Archipelago",
+       x = "Culmen Length (mm)",
+       y = "Number of Penguins") 
 ```
 
 - Part 3
@@ -305,9 +311,19 @@ ggplot(data = penguins_data, aes(x = culmen_depth_mm, y = body_mass_g, color = s
 
     - Run `ggplotly(plot_name)` and explore! Edit `plot_name` accordingly
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 
+amber <- ggplot(data = penguins_data, aes(x = culmen_depth_mm, y = body_mass_g, color = species)) + 
+  geom_point(size = 2, alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_bw() +
+  scale_color_viridis_d(option = "turbo") +
+  labs(title = "Palmer Penguins' Culmen Length",
+       subtitle = "Three species observed on three islands in the Palmer Archipelago",
+       x = "Culmen Length (mm)",
+       y = "Number of Penguins") 
 
+ggplotly(amber)
 
 ```
 
