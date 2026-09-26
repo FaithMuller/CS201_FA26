@@ -1,0 +1,202 @@
+---
+title: "Assignment 4: Exploratory Data Analysis"
+author: "Faith Muller"
+date: "`r Sys.Date()`"
+format: html
+editor: visual
+---
+
+## Overview
+
+Due: **Friday 9/25 11:59pm**
+
+In this assignment, you will practice Exploratory Data Analysis (EDA) by making plots from a **Kaggle dataset of your choice**.
+
+You will submit **at least 4 different plot types**, with short written interpretations for each.
+
+Part 1 is worth a total of 1 point, and Part 2 is worth 4 points (1 point for each plot, question, and interpretation).
+
+## Part 1: Get Your Data
+
+1.  Go to [Kaggle Datasets](https://www.kaggle.com/datasets), create an account, and choose a dataset that interests you. Ensure your data has:
+    1.  At least 4 variables
+    2.  At least one categorical and one continuous variable
+    3.  I recommend data that contains at least 50-100 observations
+    4.  Tip: Open the CSV on Kaggle first and skim the columns to check that it meets these requirements
+2.  Download the dataset as a CSV file.
+3.  Place the CSV in your class R project `data` folder.
+4.  Read it into R with `read_csv()`.
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(plotly)
+library(janitor)
+library(datasauRus)
+
+fish_data <- read_csv("data/Fish.csv") |> 
+  clean_names()
+
+fish_data <- fish_data |> 
+  filter(weight > 0)
+```
+
+### Describe your data
+
+Data author: Vipul L Rathod
+
+Link: <https://www.kaggle.com/datasets/vipullrathod/fish-market>
+
+Description: This dataset contains measurements of 159 fish sold at a fish market, collected to estimate fish weight based on species and physical characteristics.
+
+### Preview your data
+
+Use some of the strategies you've learned in this class or picked up elsewhere to summarize and quickly explore your data.
+
+```{r}
+names(fish_data) # shows the name of the 7 fish
+skimr::skim(fish_data) # shows everything in the dataset
+summary(fish_data) 
+```
+
+Numbers of Row: 158 obs
+
+Numbers of Columns: 7 var
+
+Class types: character = 1, numeric = 6
+
+It also shows that there's no massing data in the dataset.
+
+### Summary stats
+
+Before you make plots, you must also:
+
+- Show basic summaries of your dataset, including:
+
+  - `count()` for categorical variables (to see category frequencies)
+
+  - `mean()`, `median()`, `sd()`, `min()`, `max()` for at least one numeric variable
+
+  - Remember to use `na.rm = TRUE` if you have missing values that affect summaries!
+
+```{r}
+fish_data |> 
+  count(species, sort = TRUE)
+
+fish_data |> 
+  summarise(
+    n      = n(),
+    mean   = mean(weight),
+    median = median(weight),
+    sd     = sd(weight),
+    iqr    = IQR(weight),
+    min    = min(weight),
+    max    = max(weight))
+```
+
+Write 2–3 sentences here: What do the category counts tell you? What does the numeric summary show about spread, center, or outliers?
+
+- The category counts creates a table that tells me the list of fish and amount (listing the most to the least). After learning that there are more Perch fish than Whitefish, so I did some research. I learned that its easier to catch perch fish because they live in larger schools, close to shore, and bite aggressively.
+
+- So just by what I have seen with the summary, it shows that the mean is larger than the median. This means that the data is right-skewed; a tail of unusually high value is pulling the mean up. The sd was also being a large relative to the mean, means the data is spread out.
+
+## Part 2: Visualize Your Data
+
+Create **at least 4 plots**, each of a different type. Your plots may share variables, but each one should answer a **different question** about your data. At least one plot must include a variable that isn't in the others.
+
+Each plot should have:
+
+- A title and labeled axes
+
+- A short interpretation (2-3 sentences) underneath
+
+  - Sample interpretation: (boxplot of `price` by `cut` from `diamonds` data): *Ideal diamonds have the lowest median price, which is surprising since Ideal is the best cut. Every cut also has a lot of very expensive outliers. One possible reason for the low Ideal prices is that Ideal diamonds might be smaller on average, which I could check by plotting carat by cut.*
+
+Use the EDA Part 3 notes as your reference. Since this is an EDA assignment, your plots can look plain, but consider adding colors, themes, or interactivity for interpretability and visual appeal if you know how.
+
+### Plot 1
+
+```{r}
+# insert code here
+ggplot(fish_data, aes(x = species)) +
+  geom_bar() +
+  labs(
+    title = "The different types of Freshwater Fish",
+    x     = "Species",
+    y     = "Number of Fish") +
+  theme_bw() 
+```
+
+Question this plot answers: What type of fishes were being sold in the Fish market and how many?
+
+Interpretation: I made a really simple visualization, just to display what I am working with. This visualization shows the topic of fish and how many were in the market for sale. There was more Perch fish and least Whitefish.
+
+### Plot 2
+
+```{r}
+# insert code here
+ggplot(fish_data, aes(x = length1, y = weight, color = species)) +
+  geom_point() +
+  labs(
+    title    = "Relationship Between Length and Weight by Species",
+    subtitle = "158 fish across 7 species",
+    x        = "Length1",
+    y        = "Weight",
+    color    = "Species",
+    caption  = "Source: ggplot2::fish_data") 
+
+```
+
+Question this plot answers: Is there a relationship between fish length and weight?
+
+Interpretation: The visualization was made to I could see if there was any relationship between weight and length. From the visual, I see that as the weight increases so the length increases as well. For the Pike fish, they reach the longest lengths but lower weights (I had to search this fish and I could see why).
+
+<https://en.wikipedia.org/wiki/Northern_pike> (here a link of what Pike is and what they look like)
+
+### Plot 3
+
+```{r}
+# insert code here
+fish_weight <- ggplot(fish_data, aes(x = species, y = weight, color = species)) +
+  geom_boxplot() +
+  labs(  
+    title    = "Comparing Fish Weight Across Species",
+    x        = "Species names",
+    y        = "Weight (grams)")
+
+ggplotly(fish_weight)
+```
+
+Question this plot answers: Do certain species tend to be heavier than others?
+
+Interpretation: I made this graph interactive so more information could be shown since for the smelt you can't really what information is showing. From what the visual is showing:
+
+- Pike fish had the highest weight median and the widest spread.
+
+- Smelt fish has the lowest weight overall
+
+- Both Roach and Smelt shows a couple of dots above their boxes, those are most likely to be outliers.
+
+### Plot 4
+
+```{r}
+# insert code here
+histogram <- ggplot(fish_data, aes(x = height)) +
+  geom_histogram() +
+  labs(
+    title = "The distribution of height of the species",
+    x     = "Height (Centimetres)",
+    y     = "Number of Fish") +
+  theme_bw()
+
+ggplotly(histogram)
+```
+
+Question this plot answers: What does the distribution of fish heights look like?
+
+Interpretation: The graph shows that there was peak of 16 fish that the same height of 5.887028 cm. However, the distribution isn't a single smooth peak and there appear to be many bumps in. the graph. The dataset just includes 7 different species, which each may have their own height range.
+
+------------------------------------------------------------------------
+
+# Push to GitHub AND submit link on Canvas!!
+
+Assignment is due Friday 9/25 at 11:59 pm.
