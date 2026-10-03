@@ -72,11 +72,11 @@ ggplot(data = teds_d, aes(x = services_d, color = reason)) +
   theme(axis.text.x = element_text (angle = 45, hjust = 1, vjust = 1))
 ```
 
-**Answer to (a): The most common reason is Treatment completed, it accounts for 48% of all discharges.**
+**Answer to (a): The most common reason is Treatment completed, it accounts for 47.8% of all discharges.**
 
 **Answer to (b):** (produce a bar chart in the code chunk above)
 
-**Answer to (c):**
+**Answer to (c): It would look lower because transferred patients are counted as not completing, since they finish treatment somewhere else.**
 
 ## Question 2: Mapping no use at discharge
 
@@ -153,9 +153,9 @@ no_use_int <- ggplot(no_use_map) +
 girafe(ggobj = no_use_int)
 ```
 
-**Denominator I used, and why:** I used the completed episodes, counting "unknown" in the denominator because I felt like it would be easier.
+**Denominator I used, and why:** I used all completed episodes, also including the ones with "unknown", so that every completed episode in a state is counted. I did this because I found it easier than doing it the other way.
 
-## Question 3: Service type and length of stay
+Question 3: Service type and length of stay
 
 Treatment outcomes can vary depending on the type of service a patient receives and how long they stay in treatment.
 
@@ -170,13 +170,92 @@ Investigate how **completion rates** differ across **service type** (`services_d
 > **Full credit:** two labeled visualizations that actually show the comparison you say they show, plus a summary that describes a real pattern in your own output. You are not graded on finding the "right" pattern. You are graded on whether your summary matches your charts.
 
 ```{r}
-#| label: q3
+#| label: q3-service
 
+completion_by_service <- teds_d |>
+  filter(services_d != "unknow") |>   # drops missing; matches your spelling from Monday
+  group_by(services_d) |>
+  summarize(
+    total     = n(),
+    completed = sum(reason == "Treatment completed", na.rm = TRUE)
+  ) |>
+  mutate(pct_completed = completed / total * 100)
+
+completion_by_service
+
+service_p <- ggplot(completion_by_service,
+                    aes(x = fct_reorder(services_d, pct_completed),
+                        y = pct_completed)) +
+  geom_col_interactive(
+    aes(tooltip = paste0(services_d,
+                         "<br>Completed: ", round(pct_completed, 1), "%",
+                         "<br>Discharges: ", scales::comma(total))),
+    fill = "#2a6f97", width = 0.7) +
+  geom_text(aes(label = paste0(round(pct_completed), "%")),
+            hjust = -0.15, size = 3.2) +
+  geom_hline(yintercept = 47.8, linetype = "dashed", color = "grey40") +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 100), expand = expansion(mult = c(0, 0.02)),
+                     labels = function(x) paste0(x, "%")) +
+  scale_x_discrete(labels = scales::label_wrap(30)) +
+  labs(title    = "Completion Rate by Type of Treatment Service",
+       subtitle = "TEDS-D 2024 (SAMHSA). Dashed line = national average (47.8%)",
+       x = NULL,
+       y = "% of discharges completed") +
+  theme_minimal(base_size = 11) +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor   = element_blank(),
+        plot.title         = element_text(face = "bold"))
+
+girafe(ggobj = service_p, width_svg = 8, height_svg = 5)
 ```
 
-**Summary:**
+```{r}
+#| label: q3-los
 
-## Extra Credit (optional, up to 2 pts)
+completion_by_los <- teds_d |>
+  mutate(los_group = cut(
+    los,
+    breaks = c(0, 1, 7, 30, 32, 34, 36, 37),
+    labels = c("1 day", "2–7 days", "8–30 days", "31–60 days",
+               "61–120 days", "121–365 days", "Over 1 year")
+  )) |>
+  filter(!is.na(los_group)) |>
+  group_by(los_group) |>
+  summarize(
+    total     = n(),
+    completed = sum(reason == "Treatment completed", na.rm = TRUE)
+  ) |>
+  mutate(pct_completed = completed / total * 100)
+
+completion_by_los
+
+los_p <- ggplot(completion_by_los, aes(x = los_group, y = pct_completed)) +
+  geom_col_interactive(
+    aes(tooltip = paste0(los_group,
+                         "<br>Completed: ", round(pct_completed, 1), "%",
+                         "<br>Discharges: ", scales::comma(total))),
+    fill = "#2a6f97", width = 0.7) +
+  geom_text(aes(label = paste0(round(pct_completed), "%")),
+            vjust = -0.5, size = 3.2) +
+  geom_hline(yintercept = 47.8, linetype = "dashed", color = "grey40") +
+  scale_y_continuous(limits = c(0, 100), expand = expansion(mult = c(0, 0.02)),
+                     labels = function(x) paste0(x, "%")) +
+  labs(title    = "Completion Rate by Length of Stay",
+       subtitle = "TEDS-D 2024 (SAMHSA). Dashed line = national average (47.8%)",
+       x = "Length of stay",
+       y = "% of discharges completed") +
+  theme_minimal(base_size = 11) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor   = element_blank(),
+        plot.title         = element_text(face = "bold"))
+
+girafe(ggobj = los_p, width_svg = 8, height_svg = 5)
+```
+
+**Summary:** I noticed that some types of treatments had much higher completion rates than others. Detox, 24-hour, hospital inpatient had the highest rate (77.3%), and Ambulatory, intensive outpatient had the lowest (29.9%). The completion percentage stayed around 45-51% for stays up to one year but dropped to 34.7% for stays longer than one year. This makes sense because hospital detox is short, outpatient patients live at home so its easier to stop coming, and treatments that last longer than a year tend to have something go wrong so fewer people finish.
+
+Extra Credit (optional, up to 2 pts)
 
 #### Again, this is meant to *stretch* you, not *stress* you!
 
@@ -185,11 +264,61 @@ Make one visualization that shows service type and length of stay **together**�
 Then, in a sentence, say what this combined view shows that your two separate charts in Question 3 could not.
 
 ```{r}
+
 #| label: extra-credit
 
+completion_by_both <- teds_d |>
+  mutate(los_group = cut(
+    los,
+    breaks = c(0, 1, 7, 30, 32, 34, 36, 37),
+    labels = c("1 day", "2–7 days", "8–30 days", "31–60 days",
+               "61–120 days", "121–365 days", "Over 1 year")
+  )) |>
+  filter(!is.na(los_group), services_d != "unknow") |>
+  group_by(services_d, los_group) |>
+  summarize(
+    total     = n(),
+    completed = sum(reason == "Treatment completed", na.rm = TRUE),
+    .groups   = "drop"
+  ) |>
+  mutate(
+    pct_completed = completed / total * 100,
+    pct_show      = if_else(total >= 100, pct_completed, NA),   # hide tiny groups
+    label         = if_else(is.na(pct_show), "", paste0(round(pct_show), "%")),
+    text_col      = if_else(!is.na(pct_show) & pct_show > 55, "white", "grey15")
+  )
+
+both_p <- ggplot(completion_by_both,
+                 aes(x = los_group,
+                     y = fct_reorder(services_d, pct_completed, .fun = median))) +
+  geom_tile_interactive(
+    aes(fill = pct_show,
+        tooltip = paste0(services_d,
+                         "<br>Stay: ", los_group,
+                         "<br>Completed: ", round(pct_completed, 1), "%",
+                         "<br>Discharges: ", scales::comma(total))),
+    color = "white", linewidth = 0.8) +
+  geom_text(aes(label = label, color = text_col), size = 3) +
+  scale_color_identity() +
+  scale_fill_viridis_c(option = "mako", direction = -1, limits = c(0, 100),
+                       na.value = "grey90",
+                       labels = function(x) paste0(x, "%")) +
+  scale_y_discrete(labels = scales::label_wrap(30)) +
+  labs(title    = "Completion Rate by Service Type and Length of Stay",
+       subtitle = "TEDS-D 2024 (SAMHSA)",
+       caption  = "Gray tiles = fewer than 100 discharges (too few to trust)",
+       x = "Length of stay",
+       y = NULL,
+       fill = "% completed") +
+  theme_minimal(base_size = 11) +
+  theme(panel.grid  = element_blank(),
+        plot.title  = element_text(face = "bold"),
+        axis.text.x = element_text(angle = 30, hjust = 1))
+
+girafe(ggobj = both_p, width_svg = 9, height_svg = 5.5)
 ```
 
-**What the combined view adds:**
+**What the combined view adds: T**his heatmap is a good way to look at both at once. Just by the chart, you could tell that each treatment type has its own pattern. I could tell that staying longer helps some, but others not so much. For example, staying longer helps long-term rehab (goes from 4% on the first day to 64% over 1 year), but not ambulatory detoxification (92% at 2-7 days to about 6% for staying longer)
 
 ------------------------------------------------------------------------
 
